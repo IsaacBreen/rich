@@ -139,9 +139,8 @@ class Segment(NamedTuple):
                     _Segment(text[pos:], style, control),
                 )
             if cell_pos > cut:
-                return (
-                    _Segment(before[: pos - 1] + " ", style, control),
-                    _Segment(" " + text[pos:], style, control),
+                return _Segment(f"{before[:pos - 1]} ", style, control), _Segment(
+                    f" {text[pos:]}", style, control
                 )
 
         raise AssertionError("Will never reach here")
@@ -331,12 +330,11 @@ class Segment(NamedTuple):
         line_length = sum(segment.cell_length for segment in line)
         new_line: List[Segment]
 
-        if line_length < length:
-            if pad:
-                new_line = line + [cls(" " * (length - line_length), style)]
-            else:
-                new_line = line[:]
-        elif line_length > length:
+        if line_length < length and pad:
+            new_line = line + [cls(" " * (length - line_length), style)]
+        elif line_length < length or line_length <= length:
+            new_line = line[:]
+        else:
             new_line = []
             append = new_line.append
             line_length = 0
@@ -350,8 +348,6 @@ class Segment(NamedTuple):
                     text = set_cell_size(text, length - line_length)
                     append(cls(text, segment_style))
                     break
-        else:
-            new_line = line[:]
         return new_line
 
     @classmethod
@@ -378,7 +374,7 @@ class Segment(NamedTuple):
             Tuple[int, int]: Width and height in characters.
         """
         get_line_length = cls.get_line_length
-        max_width = max(get_line_length(line) for line in lines) if lines else 0
+        max_width = max((get_line_length(line) for line in lines), default=0)
         return (max_width, len(lines))
 
     @classmethod
@@ -443,8 +439,7 @@ class Segment(NamedTuple):
             return lines[:]
         lines = lines[:height]
         blank = cls(" " * width + "\n", style) if new_lines else cls(" " * width, style)
-        lines = lines + [[blank]] * extra_lines
-        return lines
+        return lines + [[blank]] * extra_lines
 
     @classmethod
     def align_bottom(
@@ -472,8 +467,7 @@ class Segment(NamedTuple):
             return lines[:]
         lines = lines[:height]
         blank = cls(" " * width + "\n", style) if new_lines else cls(" " * width, style)
-        lines = [[blank]] * extra_lines + lines
-        return lines
+        return [[blank]] * extra_lines + lines
 
     @classmethod
     def align_middle(
@@ -503,8 +497,7 @@ class Segment(NamedTuple):
         blank = cls(" " * width + "\n", style) if new_lines else cls(" " * width, style)
         top_lines = extra_lines // 2
         bottom_lines = extra_lines - top_lines
-        lines = [[blank]] * top_lines + lines + [[blank]] * bottom_lines
-        return lines
+        return [[blank]] * top_lines + lines + [[blank]] * bottom_lines
 
     @classmethod
     def simplify(cls, segments: Iterable["Segment"]) -> Iterable["Segment"]:
