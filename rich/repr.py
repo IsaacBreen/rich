@@ -60,10 +60,11 @@ def auto(
                             append(f"{key}={value!r}")
                 else:
                     append(repr(arg))
+            class_name = getattr(self.__class__, "__rich_name__", self.__class__.__name__)
             if angular:
-                return f"<{self.__class__.__name__} {' '.join(repr_str)}>"
+                return f"<{class_name} {' '.join(repr_str)}>"
             else:
-                return f"{self.__class__.__name__}({', '.join(repr_str)})"
+                return f"{class_name}({', '.join(repr_str)})"
 
         def auto_rich_repr(self: Type[T]) -> Result:
             """Auto generate __rich_rep__ from signature of __init__"""

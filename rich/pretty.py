@@ -677,11 +677,12 @@ def traverse(
             except Exception:
                 pass
 
+        class_name = getattr(obj.__class__, "__rich_name__", obj.__class__.__name__)
+
         if rich_repr_result is not None:
             push_visited(obj_id)
             angular = getattr(obj.__rich_repr__, "angular", False)
             args = list(iter_rich_args(rich_repr_result))
-            class_name = obj.__class__.__name__
 
             if args:
                 children = []
@@ -735,10 +736,10 @@ def traverse(
             attr_fields = _get_attr_fields(obj)
             if attr_fields:
                 if reached_max_depth:
-                    node = Node(value_repr=f"{obj.__class__.__name__}(...)")
+                    node = Node(value_repr=f"{class_name}(...)")
                 else:
                     node = Node(
-                        open_brace=f"{obj.__class__.__name__}(",
+                        open_brace=f"{class_name}(",
                         close_brace=")",
                         children=children,
                         last=root,
@@ -773,7 +774,7 @@ def traverse(
                         append(child_node)
             else:
                 node = Node(
-                    value_repr=f"{obj.__class__.__name__}()", children=[], last=root
+                    value_repr=f"{class_name}()", children=[], last=root
                 )
             pop_visited(obj_id)
         elif (
@@ -786,10 +787,10 @@ def traverse(
             children = []
             append = children.append
             if reached_max_depth:
-                node = Node(value_repr=f"{obj.__class__.__name__}(...)")
+                node = Node(value_repr=f"{class_name}(...)")
             else:
                 node = Node(
-                    open_brace=f"{obj.__class__.__name__}(",
+                    open_brace=f"{class_name}(",
                     close_brace=")",
                     children=children,
                     last=root,
@@ -807,7 +808,6 @@ def traverse(
             pop_visited(obj_id)
         elif _is_namedtuple(obj) and _has_default_namedtuple_repr(obj):
             push_visited(obj_id)
-            class_name = obj.__class__.__name__
             if reached_max_depth:
                 # If we've reached the max depth, we still show the class name, but not its contents
                 node = Node(
