@@ -477,8 +477,7 @@ class Node:
         return True
 
     def __str__(self) -> str:
-        repr_text = "".join(self.iter_tokens())
-        return repr_text
+        return "".join(self.iter_tokens())
 
     def render(
         self, max_width: int = 80, indent_size: int = 4, expand_all: bool = False
@@ -497,13 +496,15 @@ class Node:
         line_no = 0
         while line_no < len(lines):
             line = lines[line_no]
-            if line.expandable and not line.expanded:
-                if expand_all or not line.check_length(max_width):
-                    lines[line_no : line_no + 1] = line.expand(indent_size)
+            if (
+                line.expandable
+                and not line.expanded
+                and (expand_all or not line.check_length(max_width))
+            ):
+                lines[line_no : line_no + 1] = line.expand(indent_size)
             line_no += 1
 
-        repr_str = "\n".join(str(line) for line in lines)
-        return repr_str
+        return "\n".join(str(line) for line in lines)
 
 
 @dataclass
@@ -549,15 +550,13 @@ class _Line:
         tuple_of_one = node.is_tuple and len(node.children) == 1
         for last, child in loop_last(node.children):
             separator = "," if tuple_of_one else node.separator
-            line = _Line(
+            yield _Line(
                 parent=new_line,
                 node=child,
                 whitespace=child_whitespace,
                 suffix=separator,
                 last=last and not tuple_of_one,
             )
-            yield line
-
         yield _Line(
             text=node.close_brace,
             whitespace=whitespace,
